@@ -1,0 +1,41 @@
+RHEL 7 ::
+
+yum install vsftpd
+systemctl start vsftpd
+systemctl enable vsftpd.service
+
+## Works on port 20 (data) and port (21) for command. Active (Used during connection via port 20) and passive mode
+## RFC 1635, allow public access via anonymous user (ftp) and password = ftp - /var/ftp/pub
+
+--> To connect, make sure *selinux is disabled or setsebool -P ftp_home_dir on
+
+## For AWS Add two Custom TCP Rules with port ranges 20-21 and 1024-1048 in inbound connections security group and below in vsfptd conf:
+# Tuning vsftpd conf ::
+
+vim /etc/vsftpd/vsftpd.conf 
+-----
+# Disable public access via ftp/ftp
+anonymous_enable=NO
+# Confining Users to Their Home Directories - Local users restricted to only their home directories during FTP sessions
+chroot_local_user=YES
+allow_writeable_chroot=YES
+# Below 3 at the end of file
+pasv_enable=YES
+pasv_min_port=1024
+pasv_max_port=1048
+# client session is terminated after being idle for 300 seconds ##
+idle_session_timeout=300
+# maximum number of connections per source IP, which can help secure against DoS and DDoS attacks ##
+max_per_ip=50
+----
+
+## By default - local_enable is set to YES 
+
+Enable logging - tuning vsftpd.conf 
+-----
+xferlog_enable=YES
+xferlog_std_format=NO
+xferlog_file=/var/log/vsftpd.log 
+log_ftp_protocol=YES
+debug_ssl=YES
+-----
